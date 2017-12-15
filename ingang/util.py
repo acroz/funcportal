@@ -7,7 +7,7 @@ class FunctionImportError(Exception):
 
 
 def import_function(module, function):
-    """Adapted from gunicorn."""
+    """Import a function from a module."""
 
     try:
         __import__(module)
@@ -21,15 +21,10 @@ def import_function(module, function):
     mod = sys.modules[module]
 
     try:
-        # TODO: Could this eval be replaced with a getattr?
-        obj = eval(function, vars(mod))
-    except NameError:
-        tpl = 'Failed to find function {!r} in {!r}'
-        raise FunctionImportError(tpl.format(obj, module))
-
-    if obj is None:
-        tpl = 'Failed to find function: {!r}'
-        raise FunctionImportError(tpl.format(function))
+        obj = getattr(mod, function)
+    except AttributeError:
+        tpl = 'Failed to find function {!r} in module {!r}'
+        raise FunctionImportError(tpl.format(function, module))
 
     if not callable(obj):
         raise FunctionImportError('Object is not callable: {!r}'.format(obj))
