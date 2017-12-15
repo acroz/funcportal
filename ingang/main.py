@@ -44,8 +44,7 @@ def main():
     app = Ingang()
 
     for endpoint in args.endpoints:
-        import_path = '{}:{}'.format(endpoint.module, endpoint.function)
-        function = util.import_function(import_path)
+        function = util.import_function(endpoint.module, endpoint.function)
         app.register_endpoint(endpoint.route, function)
 
     app.run_wsgi()
