@@ -1,29 +1,51 @@
 import argparse
+from collections import namedtuple
 
 from ingang.app import Ingang
 from ingang import util
 
 
+Endpoint = namedtuple('Endpoint', ['module', 'function', 'route'])
+
+
+FORMAT_ERROR_TEMPLATE = "{!r} does not match format 'module:function[:route]'"
+
+
+def parse_endpoint(arg):
+
+    parts = arg.split(':')
+
+    try:
+        module = parts[0]
+        function = parts[1]
+    except IndexError:
+        raise argparse.ArgumentTypeError(FORMAT_ERROR_TEMPLATE.format(arg))
+
+    if len(module) == 0 or len(function) == 0:
+        raise argparse.ArgumentTypeError(FORMAT_ERROR_TEMPLATE.format(arg))
+
+    try:
+        route = parts[2]
+    except:
+        route = '/{}/{}'.format(module.replace('.', '/'), function)
+
+    if not route.startswith('/'):
+        route = '/' + route
+
+    return Endpoint(module, function, route)
+
+
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('functions', nargs='+')
+    parser.add_argument('endpoints', nargs='+', type=parse_endpoint)
     args = parser.parse_args()
 
     app = Ingang()
 
-    for function_arg in args.functions:
-        parts = function_arg.split(':')
-        import_path = ':'.join(parts[:2])
-        func = util.import_function(import_path)
-
-        try:
-            endpoint = parts[2]
-        except:
-            endpoint = import_path.replace('.', '/').replace(':', '/')
-        if not endpoint.startswith('/'):
-            endpoint = '/' + endpoint
-
-        app.register_endpoint(endpoint, func)
+    for endpoint in args.endpoints:
+        import_path = '{}:{}'.format(endpoint.module, endpoint.function)
+        function = util.import_function(import_path)
+        app.register_endpoint(endpoint.route, function)
 
     app.run_wsgi()
