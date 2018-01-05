@@ -1,6 +1,10 @@
+import logging
+
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, InternalServerError
 from portal.function import InvalidArguments
+
+logger = logging.getLogger(__name__)
 
 
 class FlaskHandler(object):
@@ -25,7 +29,13 @@ class FlaskHandler(object):
         except InvalidArguments:
             raise BadRequest('invalid arguments were passed')
         except:
-            raise InternalServerError('invalid server error')
+            raise InternalServerError('internal server error')
 
-        # TODO: Catch json serialisation errors
-        return jsonify(output)
+        try:
+            return jsonify(output)
+        except TypeError:
+            logger.exception(
+                'An error occurred while serialising the return value from ' +
+                'the function {}'.format(self.name)
+            )
+            raise InternalServerError('internal server error')
