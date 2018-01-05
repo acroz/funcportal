@@ -1,8 +1,11 @@
 import logging
 
 from flask import request, jsonify
-from werkzeug.exceptions import BadRequest, InternalServerError
+from werkzeug.exceptions import (
+    HTTPException, BadRequest, InternalServerError, default_exceptions
+)
 from portal.function import InvalidArguments
+
 
 logger = logging.getLogger(__name__)
 
@@ -27,13 +30,13 @@ class FlaskHandler(object):
         try:
             output = self.portal_function(**inputs)
         except InvalidArguments:
-            raise BadRequest('invalid arguments were passed')
+            raise BadRequest('Invalid arguments were passed.')
         except Exception:
             logger.exception(
                 'An error occurred while evaluating the function {}'
                 .format(self.name)
             )
-            raise InternalServerError('internal server error')
+            raise InternalServerError()
 
         try:
             return jsonify(output)
@@ -42,4 +45,25 @@ class FlaskHandler(object):
                 'An error occurred while serialising the return value from ' +
                 'the function {}'.format(self.name)
             )
-            raise InternalServerError('internal server error')
+            raise InternalServerError()
+
+
+def configure_flask_app(app):
+    for exception_type in default_exceptions.values():
+        app.register_error_handler(exception_type, _flask_json_errorhandler)
+
+
+def _flask_json_errorhandler(exception):
+    """Create a JSON-encoded flask Response from an Exception."""
+
+    if not isinstance(exception, HTTPException):
+        exception = InternalServerError()
+
+    response = jsonify({
+        'error': True,
+        'name': exception.name,
+        'description': exception.description
+    })
+    response.status_code = exception.code
+
+    return response

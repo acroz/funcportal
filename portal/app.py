@@ -1,7 +1,7 @@
 from flask import Flask
 
 from portal.function import PortalFunction
-from portal.handler import FlaskHandler
+from portal.handler import FlaskHandler, configure_flask_app
 
 
 class Portal(object):
@@ -14,6 +14,7 @@ class Portal(object):
 
     def generate_wsgi_app(self):
         app = Flask('portal')
+        configure_flask_app(app)
         for route, function in self.routes.items():
             handler = FlaskHandler(function)
             # TODO: Consider allowing GET for functions without arguments
