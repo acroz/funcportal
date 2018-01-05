@@ -1,19 +1,19 @@
 from flask import Flask
 
-from ingang.function import IngangFunction
-from ingang.handler import FlaskHandler
+from portal.function import PortalFunction
+from portal.handler import FlaskHandler
 
 
-class Ingang(object):
+class Portal(object):
 
     def __init__(self):
         self.routes = {}
 
     def register_endpoint(self, route, function):
-        self.routes[route] = IngangFunction(function)
+        self.routes[route] = PortalFunction(function)
 
     def generate_wsgi_app(self):
-        app = Flask('ingang')
+        app = Flask('portal')
         for route, function in self.routes.items():
             handler = FlaskHandler(function)
             # TODO: Consider allowing GET for functions without arguments

@@ -10,7 +10,7 @@ class InvalidArguments(Exception):
     pass
 
 
-class IngangFunction(object):
+class PortalFunction(object):
 
     def __init__(self, function):
         self.function = function

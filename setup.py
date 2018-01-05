@@ -2,9 +2,9 @@ from setuptools import setup
 
 
 setup(
-    name='ingang',
-    description="Ingang t' yer functions",
-    packages=['ingang'],
+    name='portal',
+    description='Serve functions as an API',
+    packages=['portal'],
     install_requires=[
         'flask',
         'requests',
@@ -12,7 +12,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'ingang=ingang.main:main'
+            'portal=portal.main:main'
         ]
     }
 )

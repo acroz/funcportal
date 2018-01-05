@@ -1,16 +1,16 @@
 from flask import request, jsonify
 from werkzeug.exceptions import BadRequest, InternalServerError
-from ingang.function import InvalidArguments
+from portal.function import InvalidArguments
 
 
 class FlaskHandler(object):
 
-    def __init__(self, ingang_function):
-        self.ingang_function = ingang_function
+    def __init__(self, portal_function):
+        self.portal_function = portal_function
 
     @property
     def name(self):
-        return self.ingang_function.name
+        return self.portal_function.name
 
     def __call__(self):
 
@@ -21,7 +21,7 @@ class FlaskHandler(object):
             inputs = {}
 
         try:
-            output = self.ingang_function(**inputs)
+            output = self.portal_function(**inputs)
         except InvalidArguments:
             raise BadRequest('invalid arguments were passed')
         except:

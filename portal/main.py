@@ -1,8 +1,8 @@
 import argparse
 from collections import namedtuple
 
-from ingang.app import Ingang
-from ingang import util
+from portal.app import Portal
+from portal import util
 
 
 Endpoint = namedtuple('Endpoint', ['module', 'function', 'route'])
@@ -41,7 +41,7 @@ def main():
     parser.add_argument('endpoints', nargs='+', type=parse_endpoint)
     args = parser.parse_args()
 
-    app = Ingang()
+    app = Portal()
 
     for endpoint in args.endpoints:
         function = util.import_function(endpoint.module, endpoint.function)
