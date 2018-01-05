@@ -26,8 +26,8 @@ def parse_endpoint(arg):
 
     try:
         route = parts[2]
-    except:
-        route = '/{}/{}'.format(module.replace('.', '/'), function)
+    except IndexError:
+        route = function
 
     if not route.startswith('/'):
         route = '/' + route
@@ -38,7 +38,12 @@ def parse_endpoint(arg):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('endpoints', nargs='+', type=parse_endpoint)
+    parser.add_argument(
+        'endpoints', nargs='+', type=parse_endpoint,
+        help='One or more endpoint definitions, in the format ' +
+             'module:function[:route]. If not specified, the route is the ' +
+             'function name.'
+    )
     args = parser.parse_args()
 
     app = Portal()
