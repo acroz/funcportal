@@ -28,7 +28,11 @@ class FlaskHandler(object):
             output = self.portal_function(**inputs)
         except InvalidArguments:
             raise BadRequest('invalid arguments were passed')
-        except:
+        except Exception:
+            logger.exception(
+                'An error occurred while evaluating the function {}'
+                .format(self.name)
+            )
             raise InternalServerError('internal server error')
 
         try:
