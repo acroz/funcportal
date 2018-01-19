@@ -32,7 +32,13 @@ class FlaskHandler(object):
         except InvalidArgumentsError as e:
             raise BadRequest('Invalid arguments were passed.')
         except MissingArgumentsError as e:
-            raise BadRequest(str(e))
+            response = jsonify({
+                'error': True,
+                'description': str(e),
+                'arguments': self.portal_function.describe_arguments()
+            })
+            response.status_code = 400
+            return response
         except Exception:
             logger.exception(
                 'An error occurred while evaluating the function {}'
