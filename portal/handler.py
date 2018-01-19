@@ -4,7 +4,7 @@ from flask import request, jsonify
 from werkzeug.exceptions import (
     HTTPException, BadRequest, InternalServerError, default_exceptions
 )
-from portal.function import InvalidArguments
+from portal.function import InvalidArgumentsError, MissingArgumentsError
 
 
 logger = logging.getLogger(__name__)
@@ -29,8 +29,10 @@ class FlaskHandler(object):
 
         try:
             output = self.portal_function(**inputs)
-        except InvalidArguments:
+        except InvalidArgumentsError as e:
             raise BadRequest('Invalid arguments were passed.')
+        except MissingArgumentsError as e:
+            raise BadRequest(str(e))
         except Exception:
             logger.exception(
                 'An error occurred while evaluating the function {}'
