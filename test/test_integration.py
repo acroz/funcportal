@@ -1,5 +1,7 @@
 import os
 import subprocess
+import time
+
 import requests
 import pytest
 
@@ -13,8 +15,9 @@ def exponent(base, power=2):
 """
 
 
-@pytest.fixture
-def server(tmpdir):
+@pytest.fixture(scope='session')
+def server(tmpdir_factory):
+    tmpdir = tmpdir_factory.mktemp('tmp')
     tmpdir.join('module.py').write(TEST_MODULE)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + ':' + str(tmpdir)
@@ -22,7 +25,8 @@ def server(tmpdir):
         ['portal', 'module:multiply', 'module:exponent'],
         env=env
     )
-    yield 'http://localhost:5000'
+    time.sleep(1)  # TODO: Check for readiness
+    yield 'http://127.0.0.1:5000'
     process.terminate()
     process.wait()
 
