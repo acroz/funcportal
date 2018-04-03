@@ -1,8 +1,8 @@
 import argparse
 from collections import namedtuple
 
-from portal.app import Portal
-from portal import util
+from funcportal.app import Portal
+from funcportal import util
 
 
 Endpoint = namedtuple('Endpoint', ['module', 'function', 'route'])

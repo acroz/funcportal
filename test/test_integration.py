@@ -22,7 +22,7 @@ def server(tmpdir_factory):
     env = os.environ.copy()
     env['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + ':' + str(tmpdir)
     process = subprocess.Popen(
-        ['portal', 'module:multiply', 'module:exponent'],
+        ['funcportal', 'module:multiply', 'module:exponent'],
         env=env
     )
     time.sleep(1)  # TODO: Check for readiness
@@ -31,7 +31,7 @@ def server(tmpdir_factory):
     process.wait()
 
 
-def test_portal(server):
+def test_funcportal(server):
     url = server + '/multiply'
     response = requests.post(url, json={'x': 2, 'y': 3})
     assert response.json() == {'result': 6}

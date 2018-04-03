@@ -2,9 +2,9 @@ from setuptools import setup
 
 
 setup(
-    name='portal',
-    description='Serve functions as an API',
-    packages=['portal'],
+    name='funcportal',
+    description='Serve Python functions as web APIs',
+    packages=['funcportal'],
     install_requires=[
         'flask',
         'requests',
@@ -12,7 +12,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'portal=portal.main:main'
+            'funcportal=funcportal.main:main'
         ]
     }
 )

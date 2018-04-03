@@ -4,7 +4,7 @@ from flask import request, jsonify
 from werkzeug.exceptions import (
     HTTPException, BadRequest, InternalServerError, default_exceptions
 )
-from portal.function import InvalidArgumentsError, MissingArgumentsError
+from funcportal.function import InvalidArgumentsError, MissingArgumentsError
 
 
 logger = logging.getLogger(__name__)

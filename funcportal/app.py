@@ -1,7 +1,7 @@
 from flask import Flask
 
-from portal.function import PortalFunction
-from portal.handler import FlaskHandler, configure_flask_app
+from funcportal.function import PortalFunction
+from funcportal.handler import FlaskHandler, configure_flask_app
 
 
 class Portal(object):
@@ -13,7 +13,7 @@ class Portal(object):
         self.routes[route] = PortalFunction(function)
 
     def generate_wsgi_app(self):
-        app = Flask('portal')
+        app = Flask('funcportal')
         configure_flask_app(app)
         for route, function in self.routes.items():
             handler = FlaskHandler(function)
