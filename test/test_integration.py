@@ -26,6 +26,7 @@ def server(tmpdir_factory):
         env=env
     )
     time.sleep(1)  # TODO: Check for readiness
+    assert process.poll() is None, 'The funcportal process failed'
     yield 'http://127.0.0.1:5000'
     process.terminate()
     process.wait()
