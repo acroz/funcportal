@@ -18,7 +18,7 @@ class Portal(object):
         for route, function in self.routes.items():
             handler = FlaskHandler(function)
             # TODO: Consider allowing GET for functions without arguments
-            app.add_url_rule(route, handler.name, handler, methods=['POST'])
+            app.add_url_rule(route, function.name, handler, methods=['POST'])
         return app
 
     def run_wsgi(self):

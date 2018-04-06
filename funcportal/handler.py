@@ -1,6 +1,8 @@
 import logging
+from collections import namedtuple
+import json
 
-from flask import request, jsonify
+from flask import request, Response as FlaskResponse
 from werkzeug.exceptions import (
     HTTPException, BadRequest, InternalServerError, default_exceptions
 )
@@ -10,14 +12,50 @@ from funcportal.function import InvalidArgumentsError, MissingArgumentsError
 logger = logging.getLogger(__name__)
 
 
-class FlaskHandler(object):
+Response = namedtuple('Response', ['status_code', 'data'])
+
+
+class BaseHandler(object):
 
     def __init__(self, portal_function):
         self.portal_function = portal_function
 
-    @property
-    def name(self):
-        return self.portal_function.name
+    def _call_function(self, input_data):
+
+        try:
+            output_data = self.portal_function(**input_data)
+        except InvalidArgumentsError as e:
+            return Response(400, {'error': 'Invalid arguments were passed.'})
+        except MissingArgumentsError as e:
+            data = {
+                'error': str(e),
+                'arguments': self.portal_function.describe_arguments()
+            }
+            return Response(400, data)
+        except Exception:
+            logger.exception(
+                'Error evaluating the function {}'
+                .format(self.portal_function.name)
+            )
+            return Response(500, {'error': 'Internal server error.'})
+
+        return Response(200, output_data)
+
+    def _render_response(self, response):
+        status_code = response.status_code
+        try:
+            body = json.dumps(response.data)
+        except Exception:
+            logger.exception(
+                'Error serialising output from function {} as JSON'
+                .format(self.portal_function.name)
+            )
+            status_code = 500
+            body = json.dumps({'error': 'Internal server error.'})
+        return body, status_code
+
+
+class FlaskHandler(BaseHandler):
 
     def __call__(self):
 
@@ -27,33 +65,12 @@ class FlaskHandler(object):
         except BadRequest:
             inputs = {}
 
-        try:
-            output = self.portal_function(**inputs)
-        except InvalidArgumentsError as e:
-            raise BadRequest('Invalid arguments were passed.')
-        except MissingArgumentsError as e:
-            response = jsonify({
-                'error': True,
-                'description': str(e),
-                'arguments': self.portal_function.describe_arguments()
-            })
-            response.status_code = 400
-            return response
-        except Exception:
-            logger.exception(
-                'An error occurred while evaluating the function {}'
-                .format(self.name)
-            )
-            raise InternalServerError()
+        response = self._call_function(inputs)
+        body, status_code = self._render_response(response)
 
-        try:
-            return jsonify(output)
-        except TypeError:
-            logger.exception(
-                'An error occurred while serialising the return value from ' +
-                'the function {}'.format(self.name)
-            )
-            raise InternalServerError()
+        return FlaskResponse(
+            body, status=status_code, mimetype='application/json'
+        )
 
 
 def configure_flask_app(app):
@@ -67,11 +84,10 @@ def _flask_json_errorhandler(exception):
     if not isinstance(exception, HTTPException):
         exception = InternalServerError()
 
-    response = jsonify({
-        'error': True,
-        'name': exception.name,
+    body = json.dumps({
+        'error': exception.name,
         'description': exception.description
     })
-    response.status_code = exception.code
+    status_code = exception.code
 
-    return response
+    return FlaskResponse(body, status=status_code, mimetype='application/json')

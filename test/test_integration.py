@@ -52,9 +52,9 @@ def test_optional_argument_omitted(server):
 def test_missing_argument(server):
     url = server + '/multiply'
     response = requests.post(url, json={'x': 2})
+    assert response.status_code == 400
     body = response.json()
-    assert body['error'] is True
-    assert "missing 1 required positional argument: 'y'" in body['description']
+    assert "missing 1 required positional argument: 'y'" in body['error']
     assert body['arguments'] == {
         'required': [{'name': 'x'}, {'name': 'y'}],
         'optional': []
