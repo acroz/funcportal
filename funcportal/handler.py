@@ -15,6 +15,18 @@ logger = logging.getLogger(__name__)
 Response = namedtuple('Response', ['status_code', 'data'])
 
 
+def _describe_arguments(arguments):
+    return {
+        'required': [
+            {'name': arg.name} for arg in arguments if arg.required
+        ],
+        'optional': [
+            {'name': arg.name, 'default': arg.default}
+            for arg in arguments if not arg.required
+        ]
+    }
+
+
 class BaseHandler(object):
 
     def __init__(self, portal_function):
@@ -29,7 +41,9 @@ class BaseHandler(object):
         except MissingArgumentsError as e:
             data = {
                 'error': str(e),
-                'arguments': self.portal_function.describe_arguments()
+                'arguments': _describe_arguments(
+                    self.portal_function.arguments
+                )
             }
             return Response(400, data)
         except Exception:

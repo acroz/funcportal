@@ -47,18 +47,6 @@ class PortalFunction(object):
         self.name = self.function.__name__
         self.arguments = _get_arguments(function)
 
-    def describe_arguments(self):
-        return {
-            'required': [
-                {'name': arg.name}
-                for arg in self.arguments if arg.required
-            ],
-            'optional': [
-                {'name': arg.name, 'default': arg.default}
-                for arg in self.arguments if not arg.required
-            ]
-        }
-
     def _check_arguments(self, **kwargs):
         required = set(arg.name for arg in self.arguments if arg.required)
         provided = set(kwargs.keys())
