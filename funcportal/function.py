@@ -1,9 +1,13 @@
+from collections import namedtuple
 import six
 
 if six.PY3:
     from inspect import signature, Parameter
 else:
     from funcsigs import signature, Parameter
+
+
+Argument = namedtuple('Argument', ['name', 'required', 'default'])
 
 
 class MissingArgumentsError(TypeError):
@@ -23,41 +27,40 @@ class InvalidArgumentsError(Exception):
     pass
 
 
+def _get_arguments(function):
+
+    sig = signature(function)
+
+    arguments = []
+
+    for parameter in sig.parameters.values():
+        required = parameter.default is Parameter.empty
+        arguments.append(Argument(parameter.name, required, parameter.default))
+
+    return arguments
+
+
 class PortalFunction(object):
 
     def __init__(self, function):
         self.function = function
-
-        sig = signature(self.function)
-        self.parameters = sig.parameters.values()
-
-        self.required_parameters = []
-        self.optional_parameters = []
-        for param in self.parameters:
-            if param.default is Parameter.empty:
-                self.required_parameters.append(param)
-            else:
-                self.optional_parameters.append(param)
-
-    @property
-    def name(self):
-        return self.function.__name__
+        self.name = self.function.__name__
+        self.arguments = _get_arguments(function)
 
     def describe_arguments(self):
         return {
             'required': [
-                {'name': param.name}
-                for param in self.required_parameters
+                {'name': arg.name}
+                for arg in self.arguments if arg.required
             ],
             'optional': [
-                {'name': param.name, 'default': param.default}
-                for param in self.optional_parameters
+                {'name': arg.name, 'default': arg.default}
+                for arg in self.arguments if not arg.required
             ]
         }
 
     def _check_arguments(self, **kwargs):
-        required = set(param.name for param in self.parameters
-                       if param.default is Parameter.empty)
+        required = set(arg.name for arg in self.arguments if arg.required)
         provided = set(kwargs.keys())
 
         missing = required - provided
