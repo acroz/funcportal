@@ -1,17 +1,13 @@
 import argparse
-from collections import namedtuple
 
-from funcportal.app import Portal
+from funcportal.app import Portal, Route
 from funcportal import util
 
 
-Endpoint = namedtuple('Endpoint', ['module', 'function', 'route'])
+ERROR_TEMPLATE = "{!r} does not match format 'module:function[:endpoint]'"
 
 
-FORMAT_ERROR_TEMPLATE = "{!r} does not match format 'module:function[:route]'"
-
-
-def parse_endpoint(arg):
+def parse_route(arg):
 
     parts = arg.split(':')
 
@@ -19,10 +15,10 @@ def parse_endpoint(arg):
         module = parts[0]
         function = parts[1]
     except IndexError:
-        raise argparse.ArgumentTypeError(FORMAT_ERROR_TEMPLATE.format(arg))
+        raise argparse.ArgumentTypeError(ERROR_TEMPLATE.format(arg))
 
     if len(module) == 0 or len(function) == 0:
-        raise argparse.ArgumentTypeError(FORMAT_ERROR_TEMPLATE.format(arg))
+        raise argparse.ArgumentTypeError(ERROR_TEMPLATE.format(arg))
 
     try:
         route = parts[2]
@@ -32,24 +28,30 @@ def parse_endpoint(arg):
     if not route.startswith('/'):
         route = '/' + route
 
-    return Endpoint(module, function, route)
+    return Route(module, function, route)
 
 
 def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        'endpoints', nargs='+', type=parse_endpoint,
-        help='One or more endpoint definitions, in the format ' +
-             'module:function[:route]. If not specified, the route is the ' +
-             'function name.'
+        'routes', nargs='+', type=parse_route,
+        help='One or more route definitions, in the format ' +
+             'module:function[:endpoint]. If not specified, the route is ' +
+             'the function name.'
+    )
+    parser.add_argument(
+        '--config', '-c', help='A YAML configuration file to load'
     )
     args = parser.parse_args()
 
     app = Portal()
 
-    for endpoint in args.endpoints:
-        function = util.import_function(endpoint.module, endpoint.function)
-        app.register_endpoint(endpoint.route, function)
+    if args.config is not None:
+        app.load_config(args.config)
+
+    for route in args.routes:
+        function = util.import_function(route.module, route.function)
+        app.register_endpoint(route.endpoint, function)
 
     app.run_wsgi()

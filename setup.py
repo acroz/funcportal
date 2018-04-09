@@ -9,7 +9,8 @@ setup(
     install_requires=[
         'flask',
         'requests',
-        'six'
+        'six',
+        'pyyaml'
     ],
     entry_points={
         'console_scripts': [

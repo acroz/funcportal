@@ -14,15 +14,25 @@ def exponent(base, power=2):
     return {"result": base ** power}
 """
 
+TEST_CONFIG = """
+routes:
+  - module: module
+    function: multiply
+    endpoint: /fromconfig/multiply
+"""
+
 
 @pytest.fixture(scope='session')
 def server(tmpdir_factory):
     tmpdir = tmpdir_factory.mktemp('tmp')
     tmpdir.join('module.py').write(TEST_MODULE)
+    config = tmpdir.join('portal.yaml')
+    config.write(TEST_CONFIG)
     env = os.environ.copy()
     env['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + ':' + str(tmpdir)
     process = subprocess.Popen(
-        ['funcportal', 'module:multiply', 'module:exponent'],
+        ['funcportal', 'module:multiply', 'module:exponent',
+         '--config', str(config)],
         env=env
     )
     time.sleep(1)  # TODO: Check for readiness
