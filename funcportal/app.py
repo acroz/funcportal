@@ -19,7 +19,7 @@ class Portal(object):
             handler = FlaskHandler(function)
             # TODO: Consider allowing GET for functions without arguments
             app.add_url_rule(
-                endpoint, function.name, handler, methods=['POST']
+                endpoint, endpoint, handler, methods=['POST']
             )
         return app
 
