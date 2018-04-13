@@ -1,10 +1,46 @@
 import argparse
+from collections import namedtuple
 
-from funcportal.app import Portal, Route
+import yaml
+
+from funcportal.app import Portal
 from funcportal import util
 
 
 ERROR_TEMPLATE = "{!r} does not match format 'module:function[:endpoint]'"
+
+
+Route = namedtuple('Route', ['module', 'function', 'endpoint'])
+
+
+class ConfigurationError(RuntimeError):
+    pass
+
+
+def routes_from_config(path):
+
+    with open(path) as fp:
+        config = yaml.load(fp)
+
+    try:
+        route_data = config['routes']
+    except KeyError:
+        raise ConfigurationError(
+            'No routes entry in config read from {}'.format(path)
+        )
+
+    routes = []
+
+    for entry in route_data:
+        try:
+            route = Route(
+                entry['module'], entry['function'], entry['endpoint']
+            )
+            routes.append(route)
+        except (TypeError, KeyError):
+            raise ConfigurationError('Malformed endpoint definition')
+
+    return routes
 
 
 def parse_route(arg):
@@ -47,10 +83,12 @@ def main():
 
     app = Portal()
 
+    routes = []
     if args.config is not None:
-        app.load_config(args.config)
+        routes += routes_from_config(args.config)
+    routes += args.routes
 
-    for route in args.routes:
+    for route in routes:
         function = util.import_function(route.module, route.function)
         app.register_endpoint(route.endpoint, function)
 
