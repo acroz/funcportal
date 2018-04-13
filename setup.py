@@ -17,6 +17,10 @@ setup(
     description='Serve Python functions as web APIs',
     long_description=readme(),
     packages=['funcportal'],
+    setup_requires=['pytest-runner'],
+    tests_require=[
+        'pytest',
+    ],
     install_requires=[
         'flask',
         'requests',
