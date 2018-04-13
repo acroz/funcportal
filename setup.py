@@ -1,9 +1,11 @@
 from setuptools import setup
 
+from funcportal.version import __version__
+
 
 setup(
     name='funcportal',
-    version='0.0.0',
+    version=__version__,
     description='Serve Python functions as web APIs',
     packages=['funcportal'],
     install_requires=[
