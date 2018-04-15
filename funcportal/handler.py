@@ -53,7 +53,7 @@ class BaseHandler(object):
             )
             return Response(500, {'error': 'Internal server error.'})
 
-        return Response(200, output_data)
+        return Response(200, {'result': output_data})
 
     def _render_response(self, response):
         status_code = response.status_code
