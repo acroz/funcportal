@@ -18,30 +18,26 @@ Given a Python module like ``code.py`` below:
 .. code-block:: python
 
     # code.py
-    def address(name):
-        """Get someone's address."""
-        if name == 'Jane':
-            return '1 Main Street'
-        elif name == 'John':
-            return '2 Alternative Avenue'
-        else:
-            return None
+    def hello(name):
+        return f'Hello, {name}!'
 
-You can serve the function ``address()`` as a web API with *funcportal* on the
+You can serve the function ``hello()`` as a web API with *funcportal* on the
 command line:
 
 .. code-block:: bash
 
-    $ funcportal code:address
+    $ funcportal code:hello
 
 and you can then make HTTP POST requests to it, for example with the Python
 *requests* library:
 
 .. code-block:: python
 
-    import requests
-    response = requests.post(
-        'http://localhost:5000/address',
-        json={'name': 'Jane'}
-    )
-    address = response.json()['result']
+    >>> import requests
+    >>> response = requests.post(
+    >>>     'http://localhost:5000/hello',
+    >>>     json={'name': 'Jane'}
+    >>> )
+    >>> result = response.json()['result']
+    >>> print(result)
+    Hello, Jane!
