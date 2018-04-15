@@ -26,7 +26,7 @@ command line:
 
 .. code-block:: bash
 
-    $ funcportal code:hello
+    $ funcportal server code:hello
 
 and you can then make HTTP POST requests to it, for example with the Python
 *requests* library:
