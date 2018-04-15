@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import yaml
 
-from funcportal.app import Portal
+from funcportal.app import Portal, run_async_worker
 from funcportal import util
 
 
@@ -71,26 +71,38 @@ def parse_route(arg):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
+
+    subparsers = parser.add_subparsers(dest='command')
+
+    server = subparsers.add_parser('server')
+    server.add_argument(
         'routes', nargs='+', type=parse_route,
         help='One or more route definitions, in the format ' +
              'module:function[:endpoint]. If not specified, the route is ' +
              'the function name.'
     )
-    parser.add_argument(
+    server.add_argument(
         '--config', '-c', help='A YAML configuration file to load'
     )
+
+    worker = subparsers.add_parser('worker')
+
     args = parser.parse_args()
 
-    app = Portal()
+    if args.command == 'server':
 
-    routes = []
-    if args.config is not None:
-        routes += routes_from_config(args.config)
-    routes += args.routes
+        app = Portal()
 
-    for route in routes:
-        function = util.import_function(route.module, route.function)
-        app.register_endpoint(route.endpoint, function, route.asynchronous)
+        routes = []
+        if args.config is not None:
+            routes += routes_from_config(args.config)
+        routes += args.routes
 
-    app.run_wsgi()
+        for route in routes:
+            function = util.import_function(route.module, route.function)
+            app.register_endpoint(route.endpoint, function, route.asynchronous)
+
+        app.run_wsgi()
+
+    elif args.command == 'worker':
+        run_async_worker()

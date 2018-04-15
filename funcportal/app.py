@@ -1,6 +1,6 @@
 from flask import Flask
 from redis import Redis
-from rq import Queue
+from rq import Queue, Worker
 
 from funcportal.function import PortalFunction
 from funcportal.handler import (
@@ -9,7 +9,13 @@ from funcportal.handler import (
 )
 
 
-JOB_QUEUE = Queue('funcportal', connection=Redis())
+REDIS_CONNECTION = Redis()
+JOB_QUEUE = Queue('funcportal', connection=REDIS_CONNECTION)
+
+
+def run_async_worker():
+    worker = Worker([JOB_QUEUE], connection=REDIS_CONNECTION)
+    worker.work()
 
 
 class Portal(object):

@@ -40,7 +40,7 @@ def server(srcdir):
     env = os.environ.copy()
     env['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + ':' + str(srcdir)
     process = subprocess.Popen(
-        ['funcportal', 'module:multiply', 'module:exponent',
+        ['funcportal', 'server', 'module:multiply', 'module:exponent',
          '--config', str(config)],
         env=env
     )
@@ -55,7 +55,7 @@ def server(srcdir):
 def worker(srcdir):
     env = os.environ.copy()
     env['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + ':' + str(srcdir)
-    process = subprocess.Popen(['rq', 'worker', 'funcportal'], env=env)
+    process = subprocess.Popen(['funcportal', 'worker'], env=env)
     yield
     process.terminate()
     process.wait()
