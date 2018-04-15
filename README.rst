@@ -1,6 +1,12 @@
 funcportal
 ==========
 
+.. image:: https://travis-ci.org/acroz/funcportal.svg?branch=master
+    :target: https://travis-ci.org/acroz/funcportal
+
+.. image:: https://badge.fury.io/py/funcportal.svg
+    :target: https://pypi.org/project/funcportal/
+
 *funcportal* runs your Python functions as a web API, with no code changes
 required.
 
