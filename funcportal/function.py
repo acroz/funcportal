@@ -57,6 +57,7 @@ class PortalFunction(object):
         if missing:
             raise MissingArgumentsError(self.name, missing)
         if extra:
+            # TODO: Consider logging this case
             pass
 
     def __call__(self, **kwargs):
