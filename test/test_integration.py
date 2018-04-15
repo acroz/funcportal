@@ -8,10 +8,10 @@ import pytest
 
 TEST_MODULE = """
 def multiply(x, y):
-    return {"result": x * y}
+    return x * y
 
 def exponent(base, power=2):
-    return {"result": base ** power}
+    return base ** power
 """
 
 TEST_CONFIG = """
