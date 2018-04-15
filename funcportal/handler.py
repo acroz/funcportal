@@ -87,6 +87,74 @@ class FlaskHandler(BaseHandler):
         )
 
 
+class BaseQueueHandler(BaseHandler):
+
+    def __init__(self, portal_function, queue):
+        super(BaseQueueHandler, self).__init__(portal_function)
+        self.queue = queue
+
+    def _submit_function(self, input_data):
+
+        try:
+            job_id = self.portal_function.submit(self.queue, **input_data)
+        except InvalidArgumentsError as e:
+            return Response(400, {'error': 'Invalid arguments were passed.'})
+        except MissingArgumentsError as e:
+            data = {
+                'error': str(e),
+                'arguments': _describe_arguments(
+                    self.portal_function.arguments
+                )
+            }
+            return Response(400, data)
+        except Exception:
+            logger.exception(
+                'Error evaluating the function {}'
+                .format(self.portal_function.name)
+            )
+            return Response(500, {'error': 'Internal server error.'})
+
+        return Response(202, {'job_id': job_id})
+
+
+class FlaskQueueSubmissionHandler(BaseQueueHandler):
+
+    def __call__(self):
+
+        # get_json will raise a BAD REQUEST exception if parsing fails
+        try:
+            inputs = request.get_json(force=True)
+        except BadRequest:
+            inputs = {}
+
+        response = self._submit_function(inputs)
+        body, status_code = self._render_response(response)
+
+        return FlaskResponse(
+            body, status=status_code, mimetype='application/json'
+        )
+
+
+class FlaskQueueRetrievalHandler(BaseQueueHandler):
+
+    def __call__(self, job_id):
+
+        job = self.queue.fetch_job(job_id)
+        if job is None:
+            response = Response(404, {'error': 'No such job.'})
+        if job.result is None:
+            response = Response(404, {'error': 'Job result not available.'})
+        else:
+            output_data = job.result
+            response = Response(200, {'result': output_data})
+
+        body, status_code = self._render_response(response)
+
+        return FlaskResponse(
+            body, status=status_code, mimetype='application/json'
+        )
+
+
 def configure_flask_app(app):
     for exception_type in default_exceptions.values():
         app.register_error_handler(exception_type, _flask_json_errorhandler)

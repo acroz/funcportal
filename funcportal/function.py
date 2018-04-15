@@ -63,3 +63,8 @@ class PortalFunction(object):
     def __call__(self, **kwargs):
         self._check_arguments(**kwargs)
         return self.function(**kwargs)
+
+    def submit(self, queue, **kwargs):
+        self._check_arguments(**kwargs)
+        job = queue.enqueue(self.function, **kwargs)
+        return job.id

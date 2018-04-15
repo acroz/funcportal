@@ -25,7 +25,9 @@ setup(
         'flask',
         'requests',
         'six',
-        'pyyaml'
+        'pyyaml',
+        'rq',
+        'redis'
     ],
     entry_points={
         'console_scripts': [

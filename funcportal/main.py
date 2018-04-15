@@ -10,7 +10,7 @@ from funcportal import util
 ERROR_TEMPLATE = "{!r} does not match format 'module:function[:endpoint]'"
 
 
-Route = namedtuple('Route', ['module', 'function', 'endpoint'])
+Route = namedtuple('Route', ['module', 'function', 'endpoint', 'asynchronous'])
 
 
 class ConfigurationError(RuntimeError):
@@ -34,7 +34,8 @@ def routes_from_config(path):
     for entry in route_data:
         try:
             route = Route(
-                entry['module'], entry['function'], entry['endpoint']
+                entry['module'], entry['function'], entry['endpoint'],
+                entry.get('async', False)
             )
             routes.append(route)
         except (TypeError, KeyError):
@@ -64,7 +65,7 @@ def parse_route(arg):
     if not route.startswith('/'):
         route = '/' + route
 
-    return Route(module, function, route)
+    return Route(module, function, route, False)
 
 
 def main():
@@ -90,6 +91,6 @@ def main():
 
     for route in routes:
         function = util.import_function(route.module, route.function)
-        app.register_endpoint(route.endpoint, function)
+        app.register_endpoint(route.endpoint, function, route.asynchronous)
 
     app.run_wsgi()
