@@ -85,7 +85,7 @@ def main():
         '--config', '-c', help='A YAML configuration file to load'
     )
 
-    worker = subparsers.add_parser('worker')
+    subparsers.add_parser('worker')
 
     args = parser.parse_args()
 
