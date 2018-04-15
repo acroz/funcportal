@@ -31,7 +31,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'funcportal=funcportal.main:main'
+            'funcportal=funcportal.cli:main'
         ]
     }
 )
