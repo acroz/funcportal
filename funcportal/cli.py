@@ -78,8 +78,8 @@ def main():
     server.add_argument(
         'routes', nargs='+', type=parse_route,
         help='One or more route definitions, in the format ' +
-             'module:function[:endpoint]. If not specified, the route is ' +
-             'the function name.'
+             'module:function[:endpoint]. If not specified, the route will ' +
+             'be the function name.'
     )
     server.add_argument(
         '--config', '-c', help='A YAML configuration file to load'
