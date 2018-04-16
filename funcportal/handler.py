@@ -106,7 +106,7 @@ class FlaskHandler(BaseHandler):
         if self.portal_function.requires_arguments():
             try:
                 inputs = request.get_json(force=True)
-            except BadRequest as e:
+            except BadRequest:
                 return render_flask_response(
                     Response(400, {'error': 'Malformatted JSON.'}),
                     self.portal_function.name
@@ -125,7 +125,7 @@ class FlaskQueueSubmissionHandler(BaseQueueHandler):
         if self.portal_function.requires_arguments():
             try:
                 inputs = request.get_json(force=True)
-            except BadRequest as e:
+            except BadRequest:
                 return render_flask_response(
                     Response(400, {'error': 'Malformatted JSON.'}),
                     self.portal_function.name
