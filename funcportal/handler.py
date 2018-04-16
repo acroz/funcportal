@@ -56,6 +56,30 @@ def handle_errors(handler_method):
     return wrapped
 
 
+class BaseHandler(object):
+
+    def __init__(self, portal_function):
+        self.portal_function = portal_function
+
+    @handle_errors
+    def _call_function(self, input_data):
+        return Response(200, {'result': self.portal_function(**input_data)})
+
+
+class BaseQueueHandler(BaseHandler):
+
+    def __init__(self, portal_function, queue):
+        super(BaseQueueHandler, self).__init__(portal_function)
+        self.queue = queue
+
+    @handle_errors
+    def _submit_function(self, input_data):
+        return Response(
+            202,
+            {'job_id': self.portal_function.submit(self.queue, **input_data)}
+        )
+
+
 def render_response(response, function_name):
     status_code = response.status_code
     try:
@@ -70,85 +94,46 @@ def render_response(response, function_name):
     return body, status_code
 
 
-class BaseHandler(object):
-
-    def __init__(self, portal_function):
-        self.portal_function = portal_function
-
-    def _call_and_catch_errors(self, callable):
-        try:
-            return callable()
-        except InvalidArgumentsError:
-            return Response(
-                400, {'error': 'Invalid arguments were passed.'}
-            )
-        except MissingArgumentsError as e:
-            data = {
-                'error': str(e),
-                'arguments': _describe_arguments(
-                    self.portal_function.arguments
-                )
-            }
-            return Response(400, data)
-        except Exception:
-            logger.exception(
-                'Error evaluating the function {}'
-                .format(self.portal_function.name)
-            )
-            return Response(500, {'error': 'Internal server error.'})
-
-    @handle_errors
-    def _call_function(self, input_data):
-        return Response(200, {'result': self.portal_function(**input_data)})
+def render_flask_response(response, function_name):
+    body, status = render_response(response, function_name)
+    return FlaskResponse(body, status=status, mimetype='application/json')
 
 
 class FlaskHandler(BaseHandler):
 
     def __call__(self):
-
-        # get_json will raise a BAD REQUEST exception if parsing fails
-        try:
-            inputs = request.get_json(force=True)
-        except BadRequest:
+        if self.portal_function.requires_arguments():
+            try:
+                inputs = request.get_json(force=True)
+            except BadRequest as e:
+                return render_flask_response(
+                    Response(400, {'error': 'Malformatted JSON.'}),
+                    self.portal_function.name
+                )
+        else:
             inputs = {}
 
         response = self._call_function(inputs)
-
-        body, status = render_response(response, self.portal_function.name)
-        return FlaskResponse(body, status=status, mimetype='application/json')
-
-
-class BaseQueueHandler(BaseHandler):
-
-    def __init__(self, portal_function, queue):
-        super(BaseQueueHandler, self).__init__(portal_function)
-        self.queue = queue
-
-    def _submit_function(self, input_data):
-        return self._call_and_catch_errors(
-            lambda: Response(
-                202,
-                {'job_id': self.portal_function.submit(
-                    self.queue, **input_data
-                )}
-            )
-        )
+        return render_flask_response(response, self.portal_function.name)
 
 
 class FlaskQueueSubmissionHandler(BaseQueueHandler):
 
     def __call__(self):
 
-        # get_json will raise a BAD REQUEST exception if parsing fails
-        try:
-            inputs = request.get_json(force=True)
-        except BadRequest:
+        if self.portal_function.requires_arguments():
+            try:
+                inputs = request.get_json(force=True)
+            except BadRequest as e:
+                return render_flask_response(
+                    Response(400, {'error': 'Malformatted JSON.'}),
+                    self.portal_function.name
+                )
+        else:
             inputs = {}
 
         response = self._submit_function(inputs)
-
-        body, status = render_response(response, self.portal_function.name)
-        return FlaskResponse(body, status=status, mimetype='application/json')
+        return render_flask_response(response, self.portal_function.name)
 
 
 class FlaskQueueRetrievalHandler(BaseQueueHandler):
@@ -156,6 +141,7 @@ class FlaskQueueRetrievalHandler(BaseQueueHandler):
     def __call__(self, job_id):
 
         job = self.queue.fetch_job(job_id)
+
         if job is None:
             response = Response(404, {'error': 'No such job.'})
         if job.result is None:
@@ -164,8 +150,7 @@ class FlaskQueueRetrievalHandler(BaseQueueHandler):
             output_data = job.result
             response = Response(200, {'result': output_data})
 
-        body, status = render_response(response, self.portal_function.name)
-        return FlaskResponse(body, status=status, mimetype='application/json')
+        return render_flask_response(response, self.portal_function.name)
 
 
 def configure_flask_app(app):
