@@ -3,14 +3,14 @@ from collections import namedtuple
 
 import yaml
 
-from funcportal.app import Portal
+from funcportal.app import Portal, run_async_worker
 from funcportal import util
 
 
 ERROR_TEMPLATE = "{!r} does not match format 'module:function[:endpoint]'"
 
 
-Route = namedtuple('Route', ['module', 'function', 'endpoint'])
+Route = namedtuple('Route', ['module', 'function', 'endpoint', 'asynchronous'])
 
 
 class ConfigurationError(RuntimeError):
@@ -34,7 +34,8 @@ def routes_from_config(path):
     for entry in route_data:
         try:
             route = Route(
-                entry['module'], entry['function'], entry['endpoint']
+                entry['module'], entry['function'], entry['endpoint'],
+                entry.get('async', False)
             )
             routes.append(route)
         except (TypeError, KeyError):
@@ -64,32 +65,44 @@ def parse_route(arg):
     if not route.startswith('/'):
         route = '/' + route
 
-    return Route(module, function, route)
+    return Route(module, function, route, False)
 
 
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
+
+    subparsers = parser.add_subparsers(dest='command')
+
+    server = subparsers.add_parser('server')
+    server.add_argument(
         'routes', nargs='+', type=parse_route,
         help='One or more route definitions, in the format ' +
-             'module:function[:endpoint]. If not specified, the route is ' +
-             'the function name.'
+             'module:function[:endpoint]. If not specified, the route will ' +
+             'be the function name.'
     )
-    parser.add_argument(
+    server.add_argument(
         '--config', '-c', help='A YAML configuration file to load'
     )
+
+    subparsers.add_parser('worker')
+
     args = parser.parse_args()
 
-    app = Portal()
+    if args.command == 'server':
 
-    routes = []
-    if args.config is not None:
-        routes += routes_from_config(args.config)
-    routes += args.routes
+        app = Portal()
 
-    for route in routes:
-        function = util.import_function(route.module, route.function)
-        app.register_endpoint(route.endpoint, function)
+        routes = []
+        if args.config is not None:
+            routes += routes_from_config(args.config)
+        routes += args.routes
 
-    app.run_wsgi()
+        for route in routes:
+            function = util.import_function(route.module, route.function)
+            app.register_endpoint(route.endpoint, function, route.asynchronous)
+
+        app.run_wsgi()
+
+    elif args.command == 'worker':
+        run_async_worker()

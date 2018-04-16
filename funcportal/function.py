@@ -47,6 +47,9 @@ class PortalFunction(object):
         self.name = self.function.__name__
         self.arguments = _get_arguments(function)
 
+    def requires_arguments(self):
+        return any(arg.required for arg in self.arguments)
+
     def _check_arguments(self, **kwargs):
         required = set(arg.name for arg in self.arguments if arg.required)
         provided = set(kwargs.keys())
@@ -63,3 +66,8 @@ class PortalFunction(object):
     def __call__(self, **kwargs):
         self._check_arguments(**kwargs)
         return self.function(**kwargs)
+
+    def submit(self, queue, **kwargs):
+        self._check_arguments(**kwargs)
+        job = queue.enqueue(self.function, **kwargs)
+        return job.id
