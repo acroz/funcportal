@@ -40,7 +40,7 @@ class Portal(object):
             )
 
             if asynchronous:
-                result_endpoint = endpoint.rstrip('/') + '/<job_id>'
+                result_endpoint = endpoint.rstrip('/') + '/<result_token>'
                 result_handler = FlaskQueueRetrievalHandler(
                     function, JOB_QUEUE
                 )

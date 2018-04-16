@@ -95,11 +95,11 @@ def test_asynchronous(server, worker):
     url = server + '/async/multiply'
     response = requests.post(url, json={'x': 2, 'y': 3})
     assert response.status_code == 202
-    job_id = response.json()['job_id']
+    result_token = response.json()['result_token']
 
     for _ in range(10):
         time.sleep(0.1)
-        response = requests.get(url + '/{}'.format(job_id))
+        response = requests.get(url + '/{}'.format(result_token))
         print(response.text)
         if response.status_code != 404:
             break

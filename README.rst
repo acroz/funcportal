@@ -106,7 +106,7 @@ immediately with a token that can be redeemed later for the result:
     >>> print(response.status_code)
     202
     >>> print(response.json())
-    {'job_id': '3bf409d0-4b91-4e75-87e4-c377f2f9dbf6'}
+    {'result_token': '3bf409d0-4b91-4e75-87e4-c377f2f9dbf6'}
 
 You can then poll the original endpoint plus the result token with an HTTP GET
 to retrieve the result when ready. Before the result is ready, a 404 NOT FOUND

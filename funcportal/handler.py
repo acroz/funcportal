@@ -76,7 +76,8 @@ class BaseQueueHandler(BaseHandler):
     def _submit_function(self, input_data):
         return Response(
             202,
-            {'job_id': self.portal_function.submit(self.queue, **input_data)}
+            {'result_token':
+                self.portal_function.submit(self.queue, **input_data)}
         )
 
 
@@ -138,9 +139,9 @@ class FlaskQueueSubmissionHandler(BaseQueueHandler):
 
 class FlaskQueueRetrievalHandler(BaseQueueHandler):
 
-    def __call__(self, job_id):
+    def __call__(self, result_token):
 
-        job = self.queue.fetch_job(job_id)
+        job = self.queue.fetch_job(result_token)
 
         if job is None:
             response = Response(404, {'error': 'No such job.'})
