@@ -20,6 +20,7 @@ MALFORMATTED_JSON_RESPONSE = Response(
     400,
     {'error': 'Malformatted JSON.', 'error_code': 'malformatted-json'}
 )
+INTERNAL_ERROR_RESPONSE = Response(500, {'error': 'Internal server error.'})
 
 
 def _describe_arguments(arguments):
@@ -53,7 +54,7 @@ def handle_errors(handler_method):
                 'Error evaluating the function {}'
                 .format(obj.portal_function.name)
             )
-            return Response(500, {'error': 'Internal server error.'})
+            return INTERNAL_ERROR_RESPONSE
 
     return wrapped
 
@@ -92,8 +93,8 @@ def render_response(response, function_name):
             'Error serialising output from function {} as JSON'
             .format(function_name)
         )
-        status_code = 500
-        body = json.dumps({'error': 'Internal server error.'})
+        status_code = INTERNAL_ERROR_RESPONSE.status_code
+        body = json.dumps(INTERNAL_ERROR_RESPONSE.data)
     return body, status_code
 
 
