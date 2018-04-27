@@ -7,7 +7,9 @@ from flask import request, Response as FlaskResponse
 from werkzeug.exceptions import (
     HTTPException, BadRequest, InternalServerError, default_exceptions
 )
+
 from funcportal.function import MissingArgumentsError
+from funcportal import errorcode
 
 
 logger = logging.getLogger(__name__)
@@ -18,7 +20,7 @@ Response = namedtuple('Response', ['status_code', 'data'])
 
 MALFORMATTED_JSON_RESPONSE = Response(
     400,
-    {'error': 'Malformatted JSON.', 'error_code': 'malformatted-json'}
+    {'error': 'Malformatted JSON.', 'error_code': errorcode.MALFORMATTED_JSON}
 )
 INTERNAL_ERROR_RESPONSE = Response(500, {'error': 'Internal server error.'})
 
