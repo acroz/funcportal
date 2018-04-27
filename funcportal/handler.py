@@ -46,6 +46,7 @@ def handle_errors(handler_method):
         except MissingArgumentsError as e:
             data = {
                 'error': str(e),
+                'error_code': errorcode.MISSING_ARGUMENTS,
                 'arguments': _describe_arguments(
                     obj.portal_function.arguments
                 )
