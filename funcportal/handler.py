@@ -7,7 +7,7 @@ from flask import request, Response as FlaskResponse
 from werkzeug.exceptions import (
     HTTPException, BadRequest, InternalServerError, default_exceptions
 )
-from funcportal.function import InvalidArgumentsError, MissingArgumentsError
+from funcportal.function import MissingArgumentsError
 
 
 logger = logging.getLogger(__name__)
@@ -34,10 +34,6 @@ def handle_errors(handler_method):
     def wrapped(obj, *args, **kwargs):
         try:
             return handler_method(obj, *args, **kwargs)
-        except InvalidArgumentsError:
-            return Response(
-                400, {'error': 'Invalid arguments were passed.'}
-            )
         except MissingArgumentsError as e:
             data = {
                 'error': str(e),

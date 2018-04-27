@@ -23,10 +23,6 @@ class MissingArgumentsError(TypeError):
         super(MissingArgumentsError, self).__init__(message)
 
 
-class InvalidArgumentsError(Exception):
-    pass
-
-
 def _get_arguments(function):
 
     sig = signature(function)
