@@ -16,6 +16,12 @@ logger = logging.getLogger(__name__)
 Response = namedtuple('Response', ['status_code', 'data'])
 
 
+MALFORMATTED_JSON_RESPONSE = Response(
+    400,
+    {'error': 'Malformatted JSON.', 'error_code': 'malformatted-json'}
+)
+
+
 def _describe_arguments(arguments):
     return {
         'required': [
@@ -104,7 +110,7 @@ class FlaskHandler(BaseHandler):
                 inputs = request.get_json(force=True)
             except BadRequest:
                 return render_flask_response(
-                    Response(400, {'error': 'Malformatted JSON.'}),
+                    MALFORMATTED_JSON_RESPONSE,
                     self.portal_function.name
                 )
         else:
@@ -123,7 +129,7 @@ class FlaskQueueSubmissionHandler(BaseQueueHandler):
                 inputs = request.get_json(force=True)
             except BadRequest:
                 return render_flask_response(
-                    Response(400, {'error': 'Malformatted JSON.'}),
+                    MALFORMATTED_JSON_RESPONSE,
                     self.portal_function.name
                 )
         else:
